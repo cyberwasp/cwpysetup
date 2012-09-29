@@ -1,18 +1,20 @@
-import os
-import gtk
+from _winreg import CloseKey, OpenKey, QueryValueEx, SetValueEx, \
+    HKEY_LOCAL_MACHINE, KEY_READ, KEY_ALL_ACCESS, REG_EXPAND_SZ
 from inspect import isclass
-import imp
 from tempfile import mktemp
+from win32com.shell import shellcon
+from win32com.shell.shell import ShellExecuteEx
+from win32gui import SendMessage
+import gtk
+import imp
+import os
 import shutil
+import sys
+import win32con
+import win32event
+import win32process
 import winshell
 
-import win32con
-from win32gui import SendMessage
-from _winreg import  CloseKey, OpenKey, QueryValueEx, SetValueEx, HKEY_LOCAL_MACHINE, KEY_READ, KEY_ALL_ACCESS, REG_EXPAND_SZ
-from win32com.shell.shell import ShellExecuteEx
-from win32com.shell import shellcon
-import win32process, win32event
-import sys
 
 ENV_REG_PATH = r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
 LINKS_DIR = '.links'
@@ -28,11 +30,11 @@ def isadmin():
 def runasadmin():
     try:
         rc = ShellExecuteEx(hwnd=0,
-                        fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
+                        fMask=shellcon.SEE_MASK_NOCLOSEPROCESS + shellcon.SEE_MASK_NO_CONSOLE,
                         lpVerb="runas",
                         lpFile='python.exe',
                         lpParameters=' '.join(sys.argv[:]),
-                        nShow=win32con.SW_HIDE)
+                        nShow=win32con.SW_SHOW)
     except Exception as e:
         print e[2]
         sys.exit()
@@ -187,27 +189,40 @@ class Setup(object):
                 os.mkdir(links_dir)                
             for target in self.links:
                 link = os.path.join(links_dir, os.path.splitext(os.path.basename(target))[0] + '.lnk')
-                winshell.CreateShortcut(Path=link, Target=target)                
-    
+                winshell.CreateShortcut(Path=link, Target=target)
+
+    def setup_env(self, real = False):                
+        print '*' * 50
+        print 'ENV'
+        print '*' * 50
+        for e in self.env:
+            print e + ' = ' + self.env[e]
+        if real:
+            for e in self.env:
+                set_env(e, self.env[e])
+            
+
     def run(self, real):
         self.path = get_env('PATH').split(';')
         self.delete_obsolete_path()
         self.links = []
+        self.env = {}
         if not self.unknown_modules or (self.unknown_modules and self.setup_cfgs()):
             for module in self.modules:
-                path = module.get_path()
-                self.path += path
-                links = module.get_links()
-                self.links += links
+                self.path += module.get_path()
+                self.links += module.get_links()
+                self.env.update(module.get_env())
             self.setup_path(real)
             self.make_links(real)
+            self.setup_env(real)
         
 class Module(object):
     
-    def __init__(self, root_dir, path, links, main_exe_name, versioning):
+    def __init__(self, root_dir, path, links, env, main_exe_name, versioning):
         self.root_dir = root_dir
         self.path = path
         self.links = links
+        self.env = env
         self.main_exe_name = main_exe_name
         self.versioning = versioning
         self.last_ver_dir = self.get_last_version_dir()
@@ -234,8 +249,9 @@ class Module(object):
         path = m.PATH if hasattr(m, 'PATH') else None
         links = m.LINKS if hasattr(m, 'LINKS') else None
         main_exe_name = m.EXE if hasattr(m, 'EXE') else None  
+        env = m.ENV if hasattr(m, 'ENV') else None
         
-        module = globals()[type](module_root_dir, path, links, main_exe_name, versioning)
+        module = globals()[type](module_root_dir, path, links, env, main_exe_name, versioning)
        
         os.remove(cfg_file_name_tmp)
         
@@ -279,24 +295,41 @@ class Module(object):
         return os.path.join(self.get_last_version_dir(), self.get_main_exe_name() + '.exe') 
         
 
-    def expand_strings(self, path):
-        for p in path:
+    def expand_strings_in_list(self, list):
+        for p in list:
             try:
                 yield p.format(**self.__dict__) 
             except:
                 raise Exception("Error in string", p)
+        
+    def expand_strings_in_map(self, map):
+        r = {}
+        for p in map:
+            try:
+                val = map[p].format(**self.__dict__) 
+            except:
+                raise Exception("Error in string", p)
+            r[p] = val
+        return r
+
     
     def get_path(self):
         if self.path:
-            return self.expand_strings(self.path)
+            return self.expand_strings_in_list(self.path)
         else:
             return []
         
     def get_links(self):
         if self.links:
-            return self.expand_strings(self.links)
+            return self.expand_strings_in_list(self.links)
         else:
             return []
+        
+    def get_env(self):
+        if self.env:
+            return self.expand_strings_in_map(self.env)
+        else:
+            return {}
         
     def setup(self, demo = True):
         pass
@@ -313,17 +346,17 @@ class Gui(Module):
 
     def get_links(self):
         if self.links != None:
-            return self.expand_strings(self.links)
+            return self.expand_strings_in_list(self.links)
         else:
-            return self.expand_strings([self.get_main_exe_full_name()])
+            return self.expand_strings_in_list([self.get_main_exe_full_name()])
     
 class Console(Module):
     
     def get_path(self):
         if self.path != None:
-            return self.expand_strings(self.path)
+            return self.expand_strings_in_list(self.path)
         else:
-            return self.expand_strings([self.get_last_version_dir()])
+            return self.expand_strings_in_list([self.get_last_version_dir()])
 
 def real_install():
     return len(sys.argv) > 1 and  "--install" in sys.argv[1]
