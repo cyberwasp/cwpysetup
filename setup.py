@@ -26,12 +26,16 @@ def isadmin():
         return False
 
 def runasadmin():
-    rc = ShellExecuteEx(hwnd=0,
+    try:
+        rc = ShellExecuteEx(hwnd=0,
                         fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
                         lpVerb="runas",
                         lpFile='python.exe',
                         lpParameters=' '.join(sys.argv[:]),
                         nShow=win32con.SW_HIDE)
+    except Exception as e:
+        print e[2]
+        sys.exit()
 
 def get_env(name):
     key = OpenKey(HKEY_LOCAL_MACHINE, ENV_REG_PATH, 0, KEY_READ)
