@@ -290,7 +290,7 @@ class Module(object):
         
     def get_links(self):
         if self.links:
-            return self.links
+            return self.expand_strings(self.links)
         else:
             return []
         
@@ -328,5 +328,6 @@ def real_install():
 if __name__ == '__main__':
     if not isadmin() and real_install():
         runasadmin()
-    setup = Setup("w:\\progs")
-    setup.run(real_install())
+    else:
+        setup = Setup("w:\\progs")
+        setup.run(real_install())
