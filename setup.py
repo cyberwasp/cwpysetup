@@ -11,8 +11,6 @@ import os
 import shutil
 import sys
 import win32con
-import win32event
-import win32process
 import winshell
 
 
@@ -23,6 +21,7 @@ CFG_FILE_NAME = 'setup_cfg.py'
 def isadmin():
     try:
         key = OpenKey(HKEY_LOCAL_MACHINE, ENV_REG_PATH, 0, KEY_ALL_ACCESS)
+        CloseKey(key)
         return True
     except:
         return False
@@ -36,6 +35,7 @@ def runasadmin():
                         lpParameters=' '.join(sys.argv[:]),
                         nShow=win32con.SW_SHOW)
     except Exception as e:
+        print "Exit code: " + str(rc)
         print e[2]
         sys.exit()
 
@@ -153,10 +153,10 @@ class Setup(object):
         if exit_code == 0:
             for row in model:
                 name = row[0] 
-                type = row[1]
-                if type:
+                typee = row[1]
+                if typee:
                     with open(os.path.join(self.root_dir, name, CFG_FILE_NAME), 'w') as f:
-                        f.write('TYPE="' + type + '"')
+                        f.write('TYPE="' + typee + '"')
         return False    
     
 
@@ -188,8 +188,12 @@ class Setup(object):
             if not os.path.exists(links_dir):
                 os.mkdir(links_dir)                
             for target in self.links:
-                link = os.path.join(links_dir, os.path.splitext(os.path.basename(target))[0] + '.lnk')
-                winshell.CreateShortcut(Path=link, Target=target)
+                target_name, target_ext = os.path.splitext(os.path.basename(target))
+                if target_ext.lower() == '.lnk':
+                    shutil.copy(target, links_dir)
+                else:                    
+                    link = os.path.join(links_dir, target_name + '.lnk')
+                    winshell.CreateShortcut(Path=link, Target=target)
 
     def setup_env(self, real = False):                
         print '*' * 50
@@ -241,7 +245,7 @@ class Module(object):
             return None
         
         if hasattr(m, 'TYPE'):
-            type = m.TYPE
+            typee = m.TYPE
         else:
             raise Exception('Unknown module type:' + cfg_file_name)
 
@@ -251,7 +255,7 @@ class Module(object):
         main_exe_name = m.EXE if hasattr(m, 'EXE') else None  
         env = m.ENV if hasattr(m, 'ENV') else None
         
-        module = globals()[type](module_root_dir, path, links, env, main_exe_name, versioning)
+        module = globals()[typee](module_root_dir, path, links, env, main_exe_name, versioning)
        
         os.remove(cfg_file_name_tmp)
         
@@ -266,9 +270,9 @@ class Module(object):
     def get_versions(self):
         if self.versioning:
             res = []
-            for dir in os.listdir(self.root_dir):
-                if os.path.isdir(os.path.join(self.root_dir, dir)):
-                    res.append(dir)
+            for item in os.listdir(self.root_dir):
+                if os.path.isdir(os.path.join(self.root_dir, item)):
+                    res.append(item)
             return sorted(res)
         else:
             return None
@@ -295,18 +299,18 @@ class Module(object):
         return os.path.join(self.get_last_version_dir(), self.get_main_exe_name() + '.exe') 
         
 
-    def expand_strings_in_list(self, list):
-        for p in list:
+    def expand_strings_in_list(self, lst):
+        for p in lst:
             try:
                 yield p.format(**self.__dict__) 
             except:
                 raise Exception("Error in string", p)
         
-    def expand_strings_in_map(self, map):
+    def expand_strings_in_map(self, mp):
         r = {}
-        for p in map:
+        for p in mp:
             try:
-                val = map[p].format(**self.__dict__) 
+                val = mp[p].format(**self.__dict__) 
             except:
                 raise Exception("Error in string", p)
             r[p] = val
