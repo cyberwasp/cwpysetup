@@ -51,6 +51,11 @@ def set_env(name, value):
     CloseKey(key)
     SendMessage(win32con.HWND_BROADCAST, win32con.WM_SETTINGCHANGE, 0, 'Environment')
 
+def format_and_expand(s, dict):
+    ret = s.format(**dict)
+    ret = os.path.expandvars(ret)
+    return os.path.expanduser(ret)
+
 class Setup(object):
     
     def __init__(self, root_dir):
@@ -230,6 +235,7 @@ class Module(object):
         self.main_exe_name = main_exe_name
         self.versioning = versioning
         self.last_ver_dir = self.get_last_version_dir()
+        self.last_ver_home = self.get_last_version_home()
         
     @staticmethod    
     def new(cfg_file_name, module_root_dir):
@@ -288,7 +294,20 @@ class Module(object):
         if os.path.exists(bin_path) and os.path.isdir(bin_path):
             path = bin_path
         return path
-   
+
+    def get_last_version_dir(self):
+        last_version = self.get_last_version()
+        path = self.root_dir if not last_version else os.path.join(self.root_dir, self.get_last_version())
+        bin_path = os.path.join(path, 'bin')
+        if os.path.exists(bin_path) and os.path.isdir(bin_path):
+            path = bin_path
+        return path
+
+    def get_last_version_home(self):
+        last_version = self.get_last_version()
+        path = self.root_dir if not last_version else os.path.join(self.root_dir, self.get_last_version())
+        return path
+
     def get_main_exe_name(self):
         if self.main_exe_name:
             return self.main_exe_name
@@ -302,21 +321,20 @@ class Module(object):
     def expand_strings_in_list(self, lst):
         for p in lst:
             try:
-                yield p.format(**self.__dict__) 
-            except:
-                raise Exception("Error in string", p)
+                yield format_and_expand(p, self.__dict__)
+            except Exception as e:
+                raise Exception("Error in string", p, e)
         
     def expand_strings_in_map(self, mp):
         r = {}
         for p in mp:
             try:
-                val = mp[p].format(**self.__dict__) 
+                val = format_and_expand(mp[p], self.__dict__)
             except:
                 raise Exception("Error in string", p)
             r[p] = val
         return r
 
-    
     def get_path(self):
         if self.path:
             return self.expand_strings_in_list(self.path)
