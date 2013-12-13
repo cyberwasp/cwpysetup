@@ -30,7 +30,7 @@ def is_admin():
 
 def run_as_admin():
     try:
-        rc = ShellExecuteEx(hwnd=0,
+        rc = ShellExecuteEx(phwnd=0,
                             fMask=shellcon.SEE_MASK_NOCLOSEPROCESS + shellcon.SEE_MASK_NO_CONSOLE,
                             lpVerb="runas",
                             lpFile='python.exe',
@@ -198,13 +198,14 @@ class Setup(object):
             shutil.rmtree(links_dir, True)
             if not os.path.exists(links_dir):
                 os.mkdir(links_dir)
-            for target in self.links:
+            for link in self.links:
+                target = link["target"]
                 target_name, target_ext = os.path.splitext(os.path.basename(target))
                 if target_ext.lower() == '.lnk':
                     shutil.copy(target, links_dir)
                 else:
-                    link = os.path.join(links_dir, target_name + '.lnk')
-                    winshell.CreateShortcut(Path=link, Target=target)
+                    name = os.path.join(links_dir, link.get("name", target_name) + '.lnk')
+                    winshell.CreateShortcut(Path=name, Target=target)
 
     def setup_env(self, real=False):
         print '*' * 50
@@ -323,11 +324,20 @@ class Module(object):
     def get_main_exe_full_name(self):
         return os.path.join(self.get_last_version_dir(), self.get_main_exe_name() + '.exe')
 
+    def expand_strings(self, data):
+        if isinstance(data, {}.__class__):
+            return self.expand_strings_in_map(data)
+        elif isinstance(data, [].__class__):
+            return self.expand_strings_in_list(data)
+        elif isinstance(data, "".__class__):
+            return format_and_expand(data, self.__dict__)
+        else:
+            return data
 
     def expand_strings_in_list(self, lst):
         for p in lst:
             try:
-                yield format_and_expand(p, self.__dict__)
+                yield self.expand_strings(p)
             except Exception as e:
                 raise Exception("Error in string", p, e)
 
@@ -335,7 +345,7 @@ class Module(object):
         r = {}
         for p in mp:
             try:
-                val = format_and_expand(mp[p], self.__dict__)
+                val = self.expand_strings(mp[p])
             except:
                 raise Exception("Error in string", p)
             r[p] = val
@@ -343,19 +353,19 @@ class Module(object):
 
     def get_path(self):
         if self.path:
-            return self.expand_strings_in_list(self.path)
+            return self.expand_strings(self.path)
         else:
             return []
 
     def get_links(self):
         if self.links:
-            return self.expand_strings_in_list(self.links)
+            return self.expand_strings(self.links)
         else:
             return []
 
     def get_env(self):
         if self.env:
-            return self.expand_strings_in_map(self.env)
+            return self.expand_strings(self.env)
         else:
             return {}
 
@@ -374,17 +384,17 @@ class Lib(Module):
 class Gui(Module):
     def get_links(self):
         if self.links:
-            return self.expand_strings_in_list(self.links)
+            return self.expand_strings(self.links)
         else:
-            return self.expand_strings_in_list([self.get_main_exe_full_name()])
+            return self.expand_strings([{"target": self.get_main_exe_full_name()}])
 
 
 class Console(Module):
     def get_path(self):
         if self.path:
-            return self.expand_strings_in_list(self.path)
+            return self.expand_strings(self.path)
         else:
-            return self.expand_strings_in_list([self.get_last_version_dir()])
+            return self.expand_strings([self.get_last_version_dir()])
 
 
 def real_install():
