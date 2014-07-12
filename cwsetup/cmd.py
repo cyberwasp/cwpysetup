@@ -39,13 +39,32 @@ def run_as_admin():
                             nShow=win32con.SW_HIDE)
 
         ret = win32event.WaitForSingleObject(rc['hProcess'], 100)
-        with open(output_file) as of:
-            while ret == win32event.WAIT_TIMEOUT:
-                ret = win32event.WaitForSingleObject(rc['hProcess'], 100)
-                l = of.readline()
+
+        def read_output(of):
+            f = of
+            if not of:
+                if os.path.exists(output_file):
+                    global f
+                    f = open(output_file, "r")
+            if f:
+                l = f.readline()
                 while l:
                     print(l, end='', sep='')
-                    l = of.readline()
+                    l = f.readline()
+
+            return f
+
+        of = None
+
+        try:
+            while ret == win32event.WAIT_TIMEOUT:
+                ret = win32event.WaitForSingleObject(rc['hProcess'], 100)
+                of = read_output(of)
+            else:
+                of = read_output(of)
+        finally:
+            if of:
+                of.close()
 
         sys.stderr.write(open(error_file, 'r').read())
 
