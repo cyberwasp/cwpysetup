@@ -4,6 +4,7 @@ import shutil
 from tempfile import mktemp
 import cwsetup
 
+
 def format_and_expand(formatted_string, params):
     ret = formatted_string.format(**params)
     ret = os.path.expandvars(ret)

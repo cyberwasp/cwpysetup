@@ -6,13 +6,13 @@ from config import Config
 import cwsetup
 
 
-
-
 class Installer(object):
     def __init__(self, root_dir):
+        self.env = {}
+        self.links = []
+        self.path = cwutil.get_win32_all_user_env('PATH', False).split(';')
         self.root_dir = root_dir
         self.cfg = Config(root_dir)
-
 
     def delete_obsolete_path(self):
         path = list(self.path)
@@ -62,10 +62,7 @@ class Installer(object):
 
 
     def run(self, real):
-        self.path = cwutil.get_win32_all_user_env('PATH', False).split(';')
         self.delete_obsolete_path()
-        self.links = []
-        self.env = {}
         self.cfg.refine_unknowns()
         for module in self.cfg.modules():
             self.path += module.get_path()

@@ -8,5 +8,5 @@ setup(
     license='GPL',
     author='wasp',
     author_email='',
-    description='Tools for portable progs setup simplification'
+    description='Tools for portable progs setup simplification', requires=['winshell']
 )

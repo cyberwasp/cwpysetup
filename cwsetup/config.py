@@ -3,7 +3,6 @@ from modules.module import Module
 from cwsetup.modules.unknown import Unknown
 
 
-
 LINKS_DIR = '.links'
 CFG_FILE_NAME = 'setup_cfg.py'
 
@@ -33,6 +32,7 @@ class Config:
 
     def refine_unknowns(self):
         from ui.gtkui import GtkUI
+
         unknowns = self.get_unknowns()
         if unknowns:
             ui = GtkUI(unknowns, True)
