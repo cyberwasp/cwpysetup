@@ -31,7 +31,7 @@ def run_as_admin():
         rc = ShellExecuteEx(hwnd=0,
                             fMask=shellcon.SEE_MASK_NOCLOSEPROCESS + shellcon.SEE_MASK_NO_CONSOLE,
                             lpVerb="runas",
-                            lpFile='python.exe',
+                            lpFile=sys.executable,
                             lpParameters=' '.join(sys.argv[:] +
                                                   ['--output=' + output_file,
                                                    '--error=' + error_file,
