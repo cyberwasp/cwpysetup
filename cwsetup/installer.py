@@ -1,3 +1,4 @@
+import functools
 import os
 import shutil
 import cwutil
@@ -68,6 +69,7 @@ class Installer(object):
             self.path += module.get_path()
             self.links += module.get_links()
             self.env.update(module.get_env())
+        self.path = functools.reduce(lambda acc, x: (acc + [x]) if not x in acc else acc, self.path, [])
         self.setup_path(real)
         self.make_links(real)
         self.setup_env(real)
