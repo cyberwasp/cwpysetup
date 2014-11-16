@@ -66,7 +66,8 @@ class Installer(object):
         self.delete_obsolete_path()
         self.cfg.refine_unknowns()
         for module in self.cfg.modules():
-            self.path += module.get_path()
+            if module.need_path:
+                self.path += module.get_path()
             self.links += module.get_links()
             self.env.update(module.get_env())
         self.path = functools.reduce(lambda acc, x: (acc + [x]) if not x in acc else acc, self.path, [])

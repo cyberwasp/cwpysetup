@@ -21,7 +21,7 @@ class ModuleType(type):
 class Module(object):
     __metaclass__ = ModuleType
 
-    def __init__(self, root_dir, path, links, env, main_exe_name, versioning):
+    def __init__(self, root_dir, path, links, env, main_exe_name, versioning, need_path):
         self.root_dir = root_dir
         self.path = path
         self.links = links
@@ -30,6 +30,7 @@ class Module(object):
         self.versioning = versioning
         self.last_ver_dir = self.get_last_version_dir()
         self.last_ver_home = self.get_last_version_home()
+        self.need_path = need_path
 
     @staticmethod
     def new(cfg_file_name, module_root_dir):
@@ -56,13 +57,15 @@ class Module(object):
 
         versioning = m.VERSIONING if hasattr(m, 'VERSIONING') else typee != 'Unknown'
         path = m.PATH if hasattr(m, 'PATH') else None
+        need_path = m.NEED_PATH if hasattr(m, 'NEED_PATH') else (True if path else False)
         links = m.LINKS if hasattr(m, 'LINKS') else None
         main_exe_name = m.EXE if hasattr(m, 'EXE') else None
         env = m.ENV if hasattr(m, 'ENV') else None
 
         import cwsetup
 
-        module = cwsetup.modules.get_module_type(typee)(module_root_dir, path, links, env, main_exe_name, versioning)
+        module = cwsetup.modules.get_module_type(typee)(module_root_dir, path, links, env, main_exe_name, versioning,
+                                                        need_path)
 
         os.remove(cfg_file_name_tmp)
 
