@@ -4,6 +4,7 @@ from cwsetup.modules.unknown import Unknown
 
 
 LINKS_DIR = '.links'
+ARCHIVE_DIR = '.archive'
 CFG_FILE_NAME = 'setup_cfg.py'
 
 
@@ -15,7 +16,7 @@ class Config:
     def module_dirs(self):
         for elem in os.listdir(self.root_dir):
             may_be_module_dir = os.path.join(self.root_dir, elem)
-            if os.path.isdir(may_be_module_dir) and elem != LINKS_DIR:
+            if os.path.isdir(may_be_module_dir) and elem != LINKS_DIR and elem != ARCHIVE_DIR:
                 yield may_be_module_dir
 
     def modules(self):
