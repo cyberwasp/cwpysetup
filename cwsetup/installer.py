@@ -35,7 +35,10 @@ class Installer(object):
         print 'LINKS'
         print '*' * 50
         for link in self.links:
-            print link
+            if os.path.exists(link.get("target")):
+                print link
+            else:
+                print "Not exists: " + str(link)
 
         if real:
             links_dir = os.path.join(self.root_dir, cwsetup.config.LINKS_DIR)
