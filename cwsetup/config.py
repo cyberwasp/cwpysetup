@@ -32,11 +32,11 @@ class Config:
         return filter(lambda x: isinstance(x, Unknown), self.modules())
 
     def refine_unknowns(self):
-        from ui.gtkui import GtkUI
+        from ui import UI
 
-        unknowns = self.get_unknowns()
+        unknowns = list(self.get_unknowns())
         if unknowns:
-            ui = GtkUI(unknowns, True)
+            ui = UI(unknowns)
             res = ui.show()
             self.update_unknowns(res)
 

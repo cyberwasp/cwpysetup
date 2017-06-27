@@ -149,4 +149,9 @@ class Module(object):
         else:
             return {}
 
+    def get_name(self):
+        return os.path.basename(self.root_dir)
+
+    def get_display_class_name(self):
+        return self.__class__.__name__
 
