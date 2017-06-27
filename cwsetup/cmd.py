@@ -3,15 +3,15 @@ import os
 import sys
 import win32event
 
-error_file = filter(lambda x: x.startswith('--error='), sys.argv)
+error_file = list(filter(lambda x: x.startswith('--error='), sys.argv))
 if error_file:
     sys.stderr = open(error_file[0][8:], 'w')
 
-output_file = filter(lambda x: x.startswith('--output='), sys.argv)
+output_file = list(filter(lambda x: x.startswith('--output='), sys.argv))
 if output_file:
     sys.stdout = open(output_file[0][9:], 'w')
 
-path = filter(lambda x: x.startswith('--path='), sys.argv)
+path = list(filter(lambda x: x.startswith('--path='), sys.argv))
 if path:
     sys.path = path[0][7:].split(';')
 

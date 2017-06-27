@@ -2,7 +2,6 @@ import imp
 import os
 import shutil
 from tempfile import mktemp
-import cwsetup
 
 
 def format_and_expand(formatted_string, params):
@@ -11,15 +10,7 @@ def format_and_expand(formatted_string, params):
     return os.path.expanduser(ret)
 
 
-class ModuleType(type):
-    def __init__(cls, name, bases, dict):
-        if cls.__name__ != 'Module':
-            cwsetup.modules.reg_module_type(cls)
-        super(ModuleType, cls).__init__(cls)
-
-
 class Module(object):
-    __metaclass__ = ModuleType
 
     def __init__(self, root_dir, path, links, env, main_exe_name, versioning, need_path):
         self.root_dir = root_dir

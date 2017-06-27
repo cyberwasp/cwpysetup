@@ -21,7 +21,7 @@ class Config:
 
     def modules(self):
         for x in self.module_dirs():
-            if not self.__modules.has_key(x):
+            if not x in self.__modules:
                 cfg_file_name = os.path.join(x, CFG_FILE_NAME)
                 module = Module.new(cfg_file_name, x)
                 self.__modules[x] = module

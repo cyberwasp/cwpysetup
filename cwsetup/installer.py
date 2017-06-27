@@ -1,3 +1,4 @@
+from __future__ import print_function
 import functools
 import os
 import shutil
@@ -22,23 +23,23 @@ class Installer(object):
                 self.path.remove(p)
 
     def setup_path(self, real=False):
-        print '*' * 50
-        print 'PATH'
-        print '*' * 50
+        print('*' * 50)
+        print('PATH')
+        print('*' * 50)
         for path in self.path:
-            print path
+            print(path)
         if real:
             cwutil.set_win32_all_user_env('PATH', ";".join(self.path))
 
     def make_links(self, real=False):
-        print '*' * 50
-        print 'LINKS'
-        print '*' * 50
+        print('*' * 50)
+        print('LINKS')
+        print('*' * 50)
         for link in self.links:
             if os.path.exists(link.get("target")):
-                print link
+                print(link)
             else:
-                print "Not exists: " + str(link)
+                print("Not exists: " + str(link))
 
         if real:
             links_dir = os.path.join(self.root_dir, cwsetup.config.LINKS_DIR)
@@ -55,11 +56,11 @@ class Installer(object):
                     winshell.CreateShortcut(Path=name, Target=target)
 
     def setup_env(self, real=False):
-        print '*' * 50
-        print 'ENV'
-        print '*' * 50
+        print('*' * 50)
+        print('ENV')
+        print('*' * 50)
         for e in self.env:
-            print e + ' = ' + self.env[e]
+            print(e + ' = ' + self.env[e])
         if real:
             for e in self.env:
                 cwutil.set_win32_all_user_env(e, self.env[e])

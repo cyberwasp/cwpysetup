@@ -6,13 +6,12 @@ def reg_module_type(module_type):
 
 
 def get_module_type(module_type_name):
+    return next(filter(lambda x: x.__name__ == module_type_name, get_all_module_types()))
+
+
+def get_all_module_types():
     from .console import Console
     from .gui import Gui
     from .lib import Lib
     from .unknown import Unknown
-
-    return __module_types[module_type_name]
-
-
-def get_all_module_types():
-    return __module_types.values()
+    return [Console, Gui, Lib, Unknown]
