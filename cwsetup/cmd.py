@@ -41,10 +41,10 @@ def run_as_admin():
         ret = win32event.WaitForSingleObject(rc['hProcess'], 100)
 
         def read_output(of):
+            global f
             f = of
             if not of:
                 if os.path.exists(output_file):
-                    global f
                     f = open(output_file, "r")
             if f:
                 l = f.readline()

@@ -6,7 +6,7 @@ def reg_module_type(module_type):
 
 
 def get_module_type(module_type_name):
-    return next(filter(lambda x: x.__name__ == module_type_name, get_all_module_types()))
+    return next(iter(filter(lambda x: x.__name__ == module_type_name, get_all_module_types())))
 
 
 def get_all_module_types():
