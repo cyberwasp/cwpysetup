@@ -1,3 +1,4 @@
+from cwsetup.ui.common import demo
 try:
     from . import gtk2ui
     UI = gtk2ui.Gtk2UI

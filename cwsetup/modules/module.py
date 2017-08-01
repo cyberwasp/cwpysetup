@@ -1,7 +1,7 @@
 import imp
 import os
 import shutil
-from tempfile import mktemp
+import tempfile
 
 
 def format_and_expand(formatted_string, params):
@@ -26,7 +26,7 @@ class Module(object):
     @staticmethod
     def new(cfg_file_name, module_root_dir):
 
-        cfg_file_name_tmp = mktemp()
+        cfg_file_name_tmp = tempfile.mktemp()
 
         if os.path.exists(cfg_file_name):
             shutil.copy(cfg_file_name, cfg_file_name_tmp)

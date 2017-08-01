@@ -1,6 +1,7 @@
 import os
 import cwsetup.installer
-from cwsetup.modules.unknown import Unknown
+import cwsetup.ui
+import cwsetup.modules
 
 os.environ['PATH'] = r'w:\progs\gtk\2.24.10\bin;' + os.environ['PATH']
 
@@ -98,16 +99,10 @@ class Gtk2UI:
         gtk.main()
 
         if exit_code == 0:
-            return [(row[0], row[1]) for row in model if row[1] != Unknown.__name__]
+            return [(row[0], row[1]) for row in model if row[1] != cwsetup.modules.Unknown.__name__]
         else:
             return []
 
 
 if __name__ == '__main__':
-    from cwsetup.modules.gui import Gui
-
-    modules = [Gui('aaaa', [], {}, {}, '', False, False), Unknown('bbbb', [], {}, {}, '', False, False)]
-    ui = Gtk2UI(modules)
-    res = ui.show()
-    for r in res:
-        print(r)
+    cwsetup.ui.demo(Gtk2UI)
