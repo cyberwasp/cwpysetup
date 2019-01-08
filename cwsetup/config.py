@@ -1,5 +1,5 @@
 import os
-import modules
+import cwsetup.modules
 
 
 LINKS_DIR = '.links'
@@ -22,16 +22,16 @@ class Config:
         for x in self.module_dirs():
             if not x in self.__modules:
                 cfg_file_name = os.path.join(x, CFG_FILE_NAME)
-                module = modules.new(cfg_file_name, x)
+                module = cwsetup.modules.new(cfg_file_name, x)
                 self.__modules[x] = module
             if self.__modules[x]:
                 yield self.__modules[x]
 
     def get_unknowns(self):
-        return filter(lambda x: isinstance(x, modules.Unknown), self.modules())
+        return filter(lambda x: isinstance(x, cwsetup.modules.Unknown), self.modules())
 
     def refine_unknowns(self):
-        from ui import UI
+        from cwsetup.ui import UI
 
         unknowns = list(self.get_unknowns())
         if unknowns:
@@ -43,7 +43,3 @@ class Config:
         for module_name, module_type in refines:
             with open(os.path.join(self.root_dir, module_name, CFG_FILE_NAME), 'w') as f:
                 f.write('TYPE="' + module_type + '"')
-
-
-
-

@@ -1,4 +1,4 @@
-import cmd
+import cwsetup.cmd
 
 if __name__ == '__main__':
-    cmd.main()
+    cwsetup.cmd.main()

@@ -4,8 +4,7 @@ import os
 import shutil
 import cwutil
 import winshell
-from config import Config
-import cwsetup
+import cwsetup.config
 
 
 class Installer(object):
@@ -14,7 +13,7 @@ class Installer(object):
         self.links = []
         self.path = cwutil.get_win32_all_user_env('PATH', False).split(';')
         self.root_dir = root_dir
-        self.cfg = Config(root_dir)
+        self.cfg = cwsetup.config.Config(root_dir)
 
     def delete_obsolete_path(self):
         path = list(self.path)
@@ -53,8 +52,11 @@ class Installer(object):
                     shutil.copy(target, links_dir)
                 else:
                     name = os.path.join(links_dir, link.get("name", target_name) + '.lnk')
-                    winshell.CreateShortcut(Path=name, Target=target)
-
+                    print("Create shortcut:" + name)
+                    try:	
+                      winshell.CreateShortcut(Path=name, Target=target)
+                    except Exception as e:
+                      print(e)   		
     def setup_env(self, real=False):
         print('*' * 50)
         print('ENV')
